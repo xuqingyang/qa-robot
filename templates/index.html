@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8"/>
+    <title>simple QA robot</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+</head>
+<script type="text/javascript">
+		window.onload = function () {
+			$( "#sendbtn" ).on( "click", function( event ) {
+			  	sendMsg();
+			});
+
+			function sendMsg() {
+			    var number = $('#number').find(":selected").text();
+				var input = $( "#question" ).val();
+                console.log(input);
+				var input_json = {
+					'query': input,
+					'number': number
+				}
+				console.log(JSON.stringify(input_json));
+
+				$.ajax({
+					url: "/search",
+					type: "POST",
+					dataType: "json",
+					contentType: 'application/json',
+                    data: JSON.stringify(input_json),
+				})
+                .done(function( json ) {
+                    content = $("#content");
+                    content.append($("<br>"));
+                    content.append($("<h2 style=\"color:Blue\">").append(input));
+                    content.append($("<h2>").append("Similar topics:"));
+                    json.forEach(function(o){
+                        console.log(o.question);
+                        console.log(o.answer);
+                        content.append($("<h3>").append(o.question));
+                        content.append(o.answer.replace(/\n/g,"<br>"));
+                    })
+                    content.append($("<hr>"));
+                    $( "#question" ).val("");
+                    $('html, body').animate({
+                        scrollTop: $("#question").offset().top
+                    }, 0);
+                })
+                .fail(function( xhr, status, errorThrown ) {
+                    alert( "Sorry, there was a problem!" );
+                    console.log( "Error: " + errorThrown );
+                    console.log( "Status: " + status );
+                    console.dir( xhr );
+                })
+			}
+		}
+    </script>
+
+<body>
+<div id="main">
+    <div id="content" style="border:1px solid black;">
+        <h1>question and answer</h1>
+
+    </div>
+    <br>
+    <label for="number"><b>Number of answers:</b></label>
+    <select name="number" id="number">
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <br>
+    <label for="question"><b>Your question:</b></label><br>
+    <textarea name="question" id="question" cols="100"></textarea><br>
+    <button id="sendbtn">ask</button>
+</div>
+</body>
+</html>
